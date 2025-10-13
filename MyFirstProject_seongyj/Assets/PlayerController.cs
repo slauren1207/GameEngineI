@@ -2,112 +2,62 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-
-    [Header("캐릭터 설정")]
-    public string playerName = "성예정";
-    public float moveSpeed = 2.0f;
+    [Header("이동 설정")]
+    public float moveSpeed = 5.0f;
     
-    // Animator 컴포넌트 참조 (private - Inspector에 안 보임)
-    private Animator animator;
-    private SpriteRenderer spriteRenderer;
-
+    [Header("점프 설정")]
+    public float jumpForce = 10.0f;
+    
+    private Rigidbody2D rb;
+    private bool isGrounded = false;
+    private int score = 0;  // 점수 추가
+    
     void Start()
     {
-        // 게임 시작 시 한 번만 - Animator 컴포넌트 찾아서 저장
-        animator = GetComponent<Animator>();
-
-        spriteRenderer = GetComponent<SpriteRenderer>(); // 추가
-
-        //캐릭터 소개
-        Debug.Log("안녕하세요, "+playerName+"님!");
-        Debug.Log("이동 속도: "+moveSpeed);
-
-        // 디버그: 제대로 찾았는지 확인
-        if (animator != null)
-        {
-            Debug.Log("Animator 컴포넌트를 찾았습니다!");
-        }
-        else
-        {
-            Debug.LogError("Animator 컴포넌트가 없습니다!");
-        }
+        rb = GetComponent<Rigidbody2D>();
     }
     
-void Update()
-{
-    // 이동 벡터 계산
-    Vector3 movement = Vector3.zero;
-    
-//    if (Input.GetKey(KeyCode.A))
-//    {
-//        movement += Vector3.left;
-//        transform.Translate(Vector3.left * moveSpeed * Time.deltaTime);
-//        transform.localScale = new Vector3(-1, 1, 1); // X축 뒤집기
-//
-//        }
-// 
-//    if (Input.GetKey(KeyCode.D))
-//    {
-//        movement += Vector3.right;
-//        transform.Translate(Vector3.right * moveSpeed * Time.deltaTime);
-//        transform.localScale = new Vector3(1, 1, 1); // 원래 크기
-//
- //   }
-
-    // 방법 1: localScale
-    //if (Input.GetKey(KeyCode.A))
-    //{
-    //    transform.localScale = new Vector3(-1, 1, 1);
-    //}
-    //if (Input.GetKey(KeyCode.D))
-    //{
-    //    transform.localScale = new Vector3(1, 1, 1);
-    //}
-
-    // 방법 2: flipX (더 권장)
-    if (Input.GetKey(KeyCode.A))
+    void Update()
     {
-        movement += Vector3.left; 
-        spriteRenderer.flipX = true;
-    }
-
-     if (Input.GetKey(KeyCode.D))
-     {
-        movement += Vector3.right;
-        spriteRenderer.flipX = false;
-     }
-
-    if (Input.GetKeyDown(KeyCode.Space))
-    {
-        if (animator != null)
+        // 좌우 이동
+        float moveX = 0f;
+        if (Input.GetKey(KeyCode.A)) moveX = -1f;
+        if (Input.GetKey(KeyCode.D)) moveX = 1f;
+        
+        rb.velocity = new Vector2(moveX * moveSpeed, rb.velocity.y);
+        
+        // 점프 (지난 시간에 배운 내용)
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
-            animator.SetBool("Jump", true);
-            Debug.Log("점프!");
+            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
         }
     }
-
-    // 달리기 속도 계산
-    float currentMoveSpeed = moveSpeed;
-    if (Input.GetKey(KeyCode.LeftShift))
+    
+    // 바닥 충돌 감지 (Collision)
+    void OnCollisionEnter2D(Collision2D collision)
     {
-        currentMoveSpeed = moveSpeed * 3f;
-        Debug.Log("달리기 모드 활성화!");
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            isGrounded = true;
+        }
     }
     
-    // 실제 이동 적용
-    if (movement != Vector3.zero)
+    void OnCollisionExit2D(Collision2D collision)
     {
-        transform.Translate(movement * currentMoveSpeed * Time.deltaTime);
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            isGrounded = false;
+        }
     }
     
-    // 속도 계산: 이동 중이면 moveSpeed, 아니면 0
-    float currentSpeed = movement != Vector3.zero ? currentMoveSpeed : 0f;
-    
-    // Animator에 속도 전달
-    if (animator != null)
+    // 아이템 수집 감지 (Trigger)
+    void OnTriggerEnter2D(Collider2D other)
     {
-        animator.SetFloat("Speed", currentSpeed);
-        Debug.Log("Current Speed: " + currentSpeed);
+        if (other.CompareTag("Coin"))
+        {
+            score++;  // 점수 증가
+            Debug.Log("코인 획득! 현재 점수: " + score);
+            Destroy(other.gameObject);  // 코인 제거
+        }
     }
-}
 }
