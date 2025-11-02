@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Ground
   - Coin
+  - Obstacle
+  - Goal
   layers:
   - Default
   - TransparentFX
