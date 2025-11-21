@@ -1,4 +1,5 @@
 using UnityEngine;
+using Unity.Cinemachine;
 
 public class PlayerController : MonoBehaviour
 {
@@ -20,6 +21,9 @@ public class PlayerController : MonoBehaviour
     // 리스폰용 시작 위치 - 새로 추가!
     private Vector3 startPosition;
 
+    private CinemachineImpulseSource impulseSource;
+
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -31,6 +35,7 @@ public class PlayerController : MonoBehaviour
         Debug.Log("시작 위치 저장: " + startPosition);
 
         sprite.flipX = false;
+        impulseSource = GetComponent<CinemachineImpulseSource>();
     }
 
     void Update()
@@ -123,6 +128,14 @@ public class PlayerController : MonoBehaviour
             {
                 gameManager.GameClear();  // 게임 클리어 함수 호출
             }
+        }
+    }
+
+    void OnLand()
+    {
+        if (impulseSource != null)
+        {
+            impulseSource.GenerateImpulse();
         }
     }
 }
